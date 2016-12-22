@@ -7,8 +7,8 @@ from sqlalchemy.exc import DBAPIError
 
 from ..models import MyModel
 
-from datetime import datetime
-
+import datetime
+from pyramid.httpexceptions import HTTPFound
 
 @view_config(route_name='home', renderer='../templates/list.jinja2')
 def home_page(request):
@@ -43,12 +43,13 @@ def edit_page(request):
 def new_page(request):
     """View the edit page."""
     if request.method == "POST":
-            date = datetime.now()
             new_model = MyModel(title=request.POST['title'],
                                 body=request.POST['body'],
-                                creation_date="{}/{}/{}".format(date.month, date.day, date.year)
+                                creation_date=datetime.date.today()
                                 )
             request.dbsession.add(new_model)
+            return HTTPFound(location=request.route_url('home'))
+    return {}
 
 
 db_err_msg = """\

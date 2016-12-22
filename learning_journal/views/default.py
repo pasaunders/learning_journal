@@ -36,9 +36,10 @@ def home_page(request):
 @view_config(route_name="detail", renderer="../templates/detail.jinja2")
 def detail_page(request):
     """View the detail page."""
-    entry_id = int(request.matchdict[0])
-    # entry_id = int(request.matchdict['id'])
-    return {"entries": ENTRIES[entry_id - 1]}
+    entry_id = int(request.matchdict['id'])
+    query = request.dbsession.query(MyModel)
+    entries = query.get(entry_id)
+    return {"entries": entries}
 
 
 # @view_config(route_name="edit", renderer="../templates/edit.jinja2")

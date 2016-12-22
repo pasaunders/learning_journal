@@ -1,3 +1,5 @@
+"""Render our views from jinja2 templates."""
+
 from pyramid.response import Response
 from pyramid.view import view_config
 
@@ -5,9 +7,12 @@ from sqlalchemy.exc import DBAPIError
 
 from ..models import MyModel
 
+from datetime import datetime
+
 
 @view_config(route_name='home', renderer='../templates/list.jinja2')
 def home_page(request):
+    """Render the home page."""
     try:
         query = request.dbsession.query(MyModel)
         entries = query.all()
@@ -37,12 +42,13 @@ def edit_page(request):
 @view_config(route_name="new", renderer="../templates/new.jinja2")
 def new_page(request):
     """View the edit page."""
-    try:
-        query = request.dbsession.query(MyModel)
-        entries = query.all()
-    except DBAPIError:
-        return Response(db_err_msg, content_type='text/plain', status=500)
-    return {'entries': entries}
+    if request.method == "POST":
+            date = datetime.now()
+            new_model = MyModel(title=request.POST['title'],
+                                body=request.POST['body'],
+                                creation_date="{}/{}/{}".format(date.month, date.day, date.year)
+                                )
+            request.dbsession.add(new_model)
 
 
 db_err_msg = """\

@@ -1,6 +1,7 @@
 import os
 import sys
 import transaction
+import datetime
 
 from pyramid.paster import (
     get_appsettings,
@@ -72,5 +73,8 @@ def main(argv=sys.argv):
     with transaction.manager:
         dbsession = get_tm_session(session_factory, transaction.manager)
         for item in ENTRIES:
-            model = MyModel(title=item['title'], body=item['body'], creation_date=item['creation_date'])
+            model = MyModel(title=item['title'], 
+                            body=item['body'], 
+                            creation_date=datetime.datetime.strptime(item['creation_date'], '%b %d, %Y')
+                            )
             dbsession.add(model)

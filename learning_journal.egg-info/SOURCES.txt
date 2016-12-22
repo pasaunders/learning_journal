@@ -22,9 +22,13 @@ learning_journal/static/pyramid-16x16.png
 learning_journal/static/pyramid.png
 learning_journal/static/theme.css
 learning_journal/templates/404.jinja2
+learning_journal/templates/detail.jinja2
+learning_journal/templates/edit.jinja2
 learning_journal/templates/form.jinja2
 learning_journal/templates/layout.jinja2
+learning_journal/templates/list.jinja2
 learning_journal/templates/mytemplate.jinja2
+learning_journal/templates/new.jinja2
 learning_journal/views/__init__.py
 learning_journal/views/default.py
 learning_journal/views/notfound.py

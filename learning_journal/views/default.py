@@ -6,7 +6,7 @@ from sqlalchemy.exc import DBAPIError
 from ..models import MyModel
 
 
-@view_config(route_name='home', renderer='../templates/mytemplate.jinja2')
+@view_config(route_name='home', renderer='../templates/list.jinja2')
 def home_page(request):
     try:
         query = request.dbsession.query(MyModel)
@@ -33,12 +33,12 @@ def home_page(request):
 #     return {}
 
 
-# @view_config(route_name="detail", renderer="../templates/detail.jinja2")
-# def detail_page(request):
-#     """View the detail page."""
-#     entry_id = int(request.matchdict[0])
-#     # entry_id = int(request.matchdict['id'])
-#     return {"entries": ENTRIES[entry_id - 1]}
+@view_config(route_name="detail", renderer="../templates/detail.jinja2")
+def detail_page(request):
+    """View the detail page."""
+    entry_id = int(request.matchdict[0])
+    # entry_id = int(request.matchdict['id'])
+    return {"entries": ENTRIES[entry_id - 1]}
 
 
 # @view_config(route_name="edit", renderer="../templates/edit.jinja2")

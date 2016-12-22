@@ -34,6 +34,17 @@ def edit_page(request):
     return {"entries": entries}
 
 
+@view_config(route_name="new", renderer="../templates/new.jinja2")
+def new_page(request):
+    """View the edit page."""
+    try:
+        query = request.dbsession.query(MyModel)
+        entries = query.all()
+    except DBAPIError:
+        return Response(db_err_msg, content_type='text/plain', status=500)
+    return {'entries': entries}
+
+
 db_err_msg = """\
 Pyramid is having a problem using your SQL database.  The problem
 might be caused by one of the following things:

@@ -16,23 +16,6 @@ def home_page(request):
     return {'entries': entries}
 
 
-# view_config(route_name="home", renderer="../templates/list.jinja2")
-# def home_page(request):
-#     """View the home page."""
-#     return {"entries": ENTRIES}
-
-
-# # This is from class, the rest are just copied
-# @view_config(route_name="create",
-#     renderer="../templates/form.jinja2")
-# def create_view(request):
-#     # import pdb; pdb.set_trace()
-#     if request.method == "POST":
-#         #get the form stuff
-#         return {}
-#     return {}
-
-
 @view_config(route_name="detail", renderer="../templates/detail.jinja2")
 def detail_page(request):
     """View the detail page."""
@@ -42,12 +25,13 @@ def detail_page(request):
     return {"entries": entries}
 
 
-# @view_config(route_name="edit", renderer="../templates/edit.jinja2")
-# def edit_page(request):
-#     """View the edit page."""
-#     entry_id = int(request.matchdict[0])
-#     # entry_id = int(request.matchdict['id'])
-#     return {"entries": ENTRIES[entry_id - 1]}
+@view_config(route_name="edit", renderer="../templates/edit.jinja2")
+def edit_page(request):
+    """View the edit page."""
+    entry_id = int(request.matchdict['id'])
+    query = request.dbsession.query(MyModel)
+    entries = query.get(entry_id)
+    return {"entries": entries}
 
 
 db_err_msg = """\

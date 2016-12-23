@@ -19,6 +19,8 @@ requires = [
     'waitress',
     'ipython',
     'pyramid_ipython',
+    'transaction',
+    'faker'
     ]
 
 tests_require = [

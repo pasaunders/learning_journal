@@ -5,8 +5,8 @@ import transaction
 
 from pyramid import testing
 
-from .models import MyModel
-from .models.meta import Base
+from learning_journal.models import MyModel, get_tm_session
+from learning_journal.models.meta import Base
 
 import datetime
 import faker
@@ -14,12 +14,14 @@ import faker
 
 @pytest.fixture(scope="session")
 def configuration(request):
-    """Set up a configurator instance,
-    builds a testing database, and tears it down. Thank you Nick."""
+    """Set up a configurator instance.
+
+    builds a testing database, and tears it down. Thank you Nick.
+    """
     settings = {
-        'sqlalchemy.url': 'sqlite://:memory:'}
-    config = testing.setUp(setting=settings)
-    config.include('.models')
+        'sqlalchemy.url': 'sqlite:///:memory:'}
+    config = testing.setUp(settings=settings)
+    config.include('learning_journal.models')
 
     def teardown():
         testing.tearDown()
@@ -33,7 +35,7 @@ def database_session(configuration, request):
     """Create a session to interact with the testing database."""
     SessonFactory = configuration.registry['dbsession_factory']
     session = SessonFactory()
-    egine = session.bind
+    engine = session.bind
     Base.metadata.create_all(engine)
 
     def teardown():
@@ -46,6 +48,7 @@ def database_session(configuration, request):
 @pytest.fixture()
 def dummy_request(database_session):
     """Instantiate a HTTP request with database session for each new request."""
+    return testing.DummyRequest(dbsession=database_session)
 
 
 @pytest.fixture()
@@ -56,85 +59,62 @@ def add_models(dummy_request):
 Fake = faker.Faker()
 
 POSTS = [MyModel(
-    title=Fake.text(3),
+    title=Fake.text(20),
     id=i,
-    body=Fake.text(30),
+    body=Fake.text(100),
     creation_date=datetime.datetime.now(),
 ) for i in range(20)]
-
 
 
 def test_add_post(database_session):
     """Test if database entries are added."""
     database_session.add_all(POSTS)
-    assert len(database_session.query(POSTS).all()) == len(POSTS)
+    query = database_session.query(MyModel).all()
+    print('database contents: ', database_session.query(MyModel).all())
+    assert len(query) == len(POSTS)
 
 
-def test_empty_list_return(dummy_request, add_models):
-    from .views.default import list_view
-    view = list_view(dummy_request)
-    assert len(view["title"])
+def test_list_return(dummy_request, add_models):
+    """Test that the list view returns 20 entries."""
+    from learning_journal.views.default import home_page
+    view = home_page(dummy_request)
+    assert len(view["entries"]) == 20
 
 
+@pytest.fixture
+def testapp():
+    """Create basic symbols to support tests."""
+    from webtest import TestApp
+    from learning_journal import main
+
+    app = main({}, **{'sqlalchemy.url': 'sqlite:///:memory:'})
+    testapp = TestApp(app)
+
+    SessonFactory = app.registry['dbsession_factory']
+    engine = SessonFactory().bind
+    Base.metadata.create_all(bind=engine)
+
+    return testapp
 
 
-
-# def dummy_request(dbsession):
-#     return testing.DummyRequest(dbsession=dbsession)
-
-
-# class BaseTest(unittest.TestCase):
-#     def setUp(self):
-#         self.config = testing.setUp(settings={
-#             'sqlalchemy.url': 'sqlite:///:memory:'
-#         })
-#         self.config.include('.models')
-#         settings = self.config.get_settings()
-
-#         from .models import (
-#             get_engine,
-#             get_session_factory,
-#             get_tm_session,
-#             )
-
-#         self.engine = get_engine(settings)
-#         session_factory = get_session_factory(self.engine)
-
-#         self.session = get_tm_session(session_factory, transaction.manager)
-
-#     def init_database(self):
-#         from .models.meta import Base
-#         Base.metadata.create_all(self.engine)
-
-#     def tearDown(self):
-#         from .models.meta import Base
-
-#         testing.tearDown()
-#         transaction.abort()
-#         Base.metadata.drop_all(self.engine)
+@pytest.fixture
+def fill_the_db(testapp):
+    """Fill the database with generated posts."""
+    SessionFactory = testapp.app.registry["dbsession_factory"]
+    with transaction.manager:
+        dbsession = get_tm_session(SessionFactory, transaction.manager)
+        dbsession.add_all(POSTS)
 
 
-# class TestMyViewSuccessCondition(BaseTest):
-
-#     def setUp(self):
-#         super(TestMyViewSuccessCondition, self).setUp()
-#         self.init_database()
-
-#         from .models import MyModel
-
-#         model = MyModel(name='one', value=55)
-#         self.session.add(model)
-
-#     def test_passing_view(self):
-#         from .views.default import my_view
-#         info = my_view(dummy_request(self.session))
-#         self.assertEqual(info['one'].name, 'one')
-#         self.assertEqual(info['project'], 'learning_journal')
+def test_empty_db(testapp):
+    """Test that the hope page doesn't have article when the database is empty."""
+    response = testapp.get('/', status=200)
+    html = response.html
+    assert len(html.find_all("article")) == 0
 
 
-# class TestMyViewFailureCondition(BaseTest):
-
-#     def test_failing_view(self):
-#         from .views.default import my_view
-#         info = my_view(dummy_request(self.session))
-#         self.assertEqual(info.status_int, 500)
+def test_home_route_with_data_has_filled_table(testapp, fill_the_db):
+    """When there's data in the database, the home page has rows."""
+    response = testapp.get('/', status=200)
+    html = response.html
+    assert len(html.find_all("article")) == 20

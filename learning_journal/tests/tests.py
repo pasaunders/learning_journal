@@ -70,6 +70,12 @@ def test_add_post(database_session):
     assert len(database_session.query(POSTS).all()) == len(POSTS)
 
 
+def test_empty_list_return(dummy_request, add_models):
+    from .views.default import list_view
+    view = list_view(dummy_request)
+    assert len(view["title"])
+
+
 
 
 

@@ -66,6 +66,8 @@ POSTS = [MyModel(
 ) for i in range(20)]
 
 
+# Unit Tests
+
 def test_add_post(database_session):
     """Test if database entries are added."""
     database_session.add_all(POSTS)
@@ -80,6 +82,39 @@ def test_list_return(dummy_request, add_models):
     view = home_page(dummy_request)
     assert len(view["entries"]) == 20
 
+
+def test_empty_list(dummy_request):
+    """Test that the list view is empty when no entries are added."""
+    from learning_journal.views.default import home_page
+    view = home_page(dummy_request)
+    assert len(view["entries"]) == 0
+
+
+def test_correct_entries(database_session, dummy_request, add_models):
+    """Test entries are added in the right order with expected content."""
+    from learning_journal.views.default import home_page
+    home_page(dummy_request)
+    query = database_session.query(MyModel).all()
+    assert query[0].title == POSTS[0].title
+
+
+def test_detail_view_content(database_session, dummy_request, add_models):
+    """Test that database ids match main list ids."""
+    from learning_journal.views.default import detail_page
+    dummy_request.matchdict['id'] = 1
+    detail_page(dummy_request)
+    query = database_session.query(MyModel).all()
+    assert query[0].title == POSTS[0].title
+
+
+def test_edit(database_session, dummy_request, add_models):
+    """Test database items can be edited."""
+    query = database_session.query(MyModel).first()
+    query.title = 'edited title'
+    assert query.title == 'edited title'
+
+
+# Functional tests
 
 @pytest.fixture
 def testapp():
@@ -97,9 +132,9 @@ def testapp():
     return testapp
 
 
-@pytest.fixture
+@pytest.fixture()
 def fill_the_db(testapp):
-    """Fill the database with generated posts."""
+    """Fill the database with some model instances."""
     SessionFactory = testapp.app.registry["dbsession_factory"]
     with transaction.manager:
         dbsession = get_tm_session(SessionFactory, transaction.manager)
@@ -107,7 +142,7 @@ def fill_the_db(testapp):
 
 
 def test_empty_db(testapp):
-    """Test that the hope page doesn't have article when the database is empty."""
+    """Test the home page doesn't have articles if the database is empty."""
     response = testapp.get('/', status=200)
     html = response.html
     assert len(html.find_all("article")) == 0
@@ -118,3 +153,17 @@ def test_home_route_with_data_has_filled_table(testapp, fill_the_db):
     response = testapp.get('/', status=200)
     html = response.html
     assert len(html.find_all("article")) == 20
+
+
+def test_detail_data(testapp, fill_the_db):
+    """Test that detail shows a database entry."""
+    response = testapp.get('/journal/1', status=200)
+    html = response.html
+    assert html.find_all('article')
+
+
+def test_new_fields(testapp, fill_the_db):
+    """Test that new shows the right fields."""
+    response = testapp.get('/journal/1', status=200)
+    html = response.html
+    assert html.find_all('button')

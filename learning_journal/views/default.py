@@ -10,6 +10,7 @@ from ..models import MyModel
 import datetime
 from pyramid.httpexceptions import HTTPFound
 
+
 @view_config(route_name='home', renderer='../templates/list.jinja2')
 def home_page(request):
     """Render the home page."""
@@ -33,23 +34,32 @@ def detail_page(request):
 @view_config(route_name="edit", renderer="../templates/edit.jinja2")
 def edit_page(request):
     """View the edit page."""
-    entry_id = int(request.matchdict['id'])
-    query = request.dbsession.query(MyModel)
-    entries = query.get(entry_id)
-    return {"entries": entries}
+    try:
+        data = request.dbsession.query(MyModel).get(request.matchdict['id'])
+        if request.method == "POST":
+            data.title = request.POST["title"]
+            data.body = request.POST["body"]
+            request.dbsession.flush()
+            return HTTPFound(location=request.route_url('home'))
+        return {'entries': data}
+    except DBAPIError:
+        return Response(db_err_msg, content_type='text/plain', status=500)
 
 
 @view_config(route_name="new", renderer="../templates/new.jinja2")
 def new_page(request):
     """View the edit page."""
-    if request.method == "POST":
-            new_model = MyModel(title=request.POST['title'],
-                                body=request.POST['body'],
-                                creation_date=datetime.date.today()
-                                )
-            request.dbsession.add(new_model)
-            return HTTPFound(location=request.route_url('home'))
-    return {}
+    try:
+        if request.method == "POST":
+                new_model = MyModel(title=request.POST['title'],
+                                    body=request.POST['body'],
+                                    creation_date=datetime.date.today()
+                                    )
+                request.dbsession.add(new_model)
+                return HTTPFound(location=request.route_url('home'))
+        return {}
+    except DBAPIError:
+        return Response(db_err_msg, content_type='text/plain', status=500)
 
 
 db_err_msg = """\

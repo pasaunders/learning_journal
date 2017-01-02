@@ -19,7 +19,8 @@ requires = [
     'ipython',
     'pyramid_ipython',
     'transaction',
-    'faker'
+    'faker',
+    'psycopg2',
     ]
 
 tests_require = [

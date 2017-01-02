@@ -1,7 +1,6 @@
 import os
 
 from paste.deploy import loadapp
-initialize_db production.ini
 from waitress import serve
 
 if __name__ == "__main__":

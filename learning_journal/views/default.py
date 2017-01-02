@@ -1,3 +1,5 @@
+"""Render our views from jinja2 templates."""
+
 from pyramid.response import Response
 from pyramid.view import view_config
 
@@ -5,25 +7,59 @@ from sqlalchemy.exc import DBAPIError
 
 from ..models import MyModel
 
+import datetime
+from pyramid.httpexceptions import HTTPFound
 
-@view_config(route_name='home', renderer='../templates/mytemplate.jinja2')
-def my_view(request):
+
+@view_config(route_name='home', renderer='../templates/list.jinja2')
+def home_page(request):
+    """Render the home page."""
     try:
         query = request.dbsession.query(MyModel)
-        one = query.filter(MyModel.name == 'one').first()
+        entries = query.all()
     except DBAPIError:
         return Response(db_err_msg, content_type='text/plain', status=500)
-    return {'one': one, 'project': 'learning_journal'}
+    return {'entries': entries}
 
 
-@view_config(route_name="create",
-    renderer="../templates/form.jinja2")
-def create_view(request):
-    import pdb; pdb.set_trace()
-    if request.method == "POST":
-        #get the form stuff
+@view_config(route_name="detail", renderer="../templates/detail.jinja2")
+def detail_page(request):
+    """View the detail page."""
+    entry_id = int(request.matchdict['id'])
+    query = request.dbsession.query(MyModel)
+    entries = query.get(entry_id)
+    return {"entries": entries}
+
+
+@view_config(route_name="edit", renderer="../templates/edit.jinja2")
+def edit_page(request):
+    """View the edit page."""
+    try:
+        data = request.dbsession.query(MyModel).get(request.matchdict['id'])
+        if request.method == "POST":
+            data.title = request.POST["title"]
+            data.body = request.POST["body"]
+            request.dbsession.flush()
+            return HTTPFound(location=request.route_url('home'))
+        return {'entries': data}
+    except DBAPIError:
+        return Response(db_err_msg, content_type='text/plain', status=500)
+
+
+@view_config(route_name="new", renderer="../templates/new.jinja2")
+def new_page(request):
+    """View the edit page."""
+    try:
+        if request.method == "POST":
+                new_model = MyModel(title=request.POST['title'],
+                                    body=request.POST['body'],
+                                    creation_date=datetime.date.today()
+                                    )
+                request.dbsession.add(new_model)
+                return HTTPFound(location=request.route_url('home'))
         return {}
-    return {}
+    except DBAPIError:
+        return Response(db_err_msg, content_type='text/plain', status=500)
 
 
 db_err_msg = """\

@@ -13,7 +13,7 @@ from learning_journal.security import check_credentials
 from pyramid.security import remember, forget
 
 
-@view_config(route_name='home', renderer='../templates/list.jinja2')
+@view_config(route_name='home', renderer='../templates/list.jinja2', require_csrf=False)
 def home_page(request):
     """Render the home page."""
     try:
@@ -24,7 +24,7 @@ def home_page(request):
     return {'entries': entries}
 
 
-@view_config(route_name="detail", renderer="../templates/detail.jinja2")
+@view_config(route_name="detail", renderer="../templates/detail.jinja2", require_csrf=False)
 def detail_page(request):
     """View the detail page."""
     entry_id = int(request.matchdict['id'])
@@ -64,7 +64,7 @@ def new_page(request):
         return Response(db_err_msg, content_type='text/plain', status=500)
 
 
-@view_config(route_name="login", renderer="../templates/login.jinja2")
+@view_config(route_name="login", renderer="../templates/login.jinja2", require_csrf=False)
 def login_page(request):
     """Log the user in and remembers their credentials."""
     if request.POST:

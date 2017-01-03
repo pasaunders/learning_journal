@@ -21,6 +21,7 @@ requires = [
     'transaction',
     'faker',
     'psycopg2',
+    'passlib'
     ]
 
 tests_require = [

@@ -9,6 +9,8 @@ from ..models import MyModel
 
 import datetime
 from pyramid.httpexceptions import HTTPFound
+from learn_journal.security import check_credentials
+from pyramid.security import remember, forget
 
 
 @view_config(route_name='home', renderer='../templates/list.jinja2')
@@ -31,7 +33,7 @@ def detail_page(request):
     return {"entries": entries}
 
 
-@view_config(route_name="edit", renderer="../templates/edit.jinja2")
+@view_config(route_name="edit", renderer="../templates/edit.jinja2", permission="cleared")
 def edit_page(request):
     """View the edit page."""
     try:
@@ -46,7 +48,7 @@ def edit_page(request):
         return Response(db_err_msg, content_type='text/plain', status=500)
 
 
-@view_config(route_name="new", renderer="../templates/new.jinja2")
+@view_config(route_name="new", renderer="../templates/new.jinja2", permission="cleared")
 def new_page(request):
     """View the edit page."""
     try:
@@ -60,6 +62,25 @@ def new_page(request):
         return {}
     except DBAPIError:
         return Response(db_err_msg, content_type='text/plain', status=500)
+
+
+@view_config(route_name="login", renderer="../templates/login.jinja2")
+def login_page(request):
+    """Log the user in and remembers their credentials."""
+    if request.POST:
+        username = request.POST["username"]
+        password = request.POST["password"]
+        if check_credentials(username, password):
+            auth_head = remember(request, username)
+            return HTTPFound(request.route_url('home'), headers=auth_head)
+    return {}
+
+
+@view_config(route_name="logout")
+def logout_view(request):
+    """Log the user out by forgetting their credentials."""
+    auth_head = forget(request)
+    return HTTPFound(request.route_url('home'), headers=auth_head)
 
 
 db_err_msg = """\

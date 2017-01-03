@@ -3,7 +3,8 @@
 
 import os
 from pyramid.authentication import AuthTktAuthenticationPolicy
-from pyramid.authentication import ACLAuthorizationPolicy
+from pyramid.authorization import ACLAuthorizationPolicy
+
 from pyramid.security import Allow, Authenticated
 
 from passlib.apps import custom_app_context as pwd_context
@@ -24,8 +25,8 @@ class NewRoot(object):
 def check_credentials(username, password):
     """Check if password and username are correct."""
     if username and password:
-        if username == os.environ["AUTH_USERNAME"]:
-            return pwd_context.verify(password, os.environ["AUTH_PASSWORD"])
+        if username == os.environ['AUTH_USERNAME']:
+            return pwd_context.verify(password, os.environ['AUTH_PASSWORD'])
     return False
 
 
@@ -33,7 +34,7 @@ def includeme(config):
     """Configure security."""
     auth_secret = os.environ.get("AUTH_SECRET", "secret_words")
     authn_policy = AuthTktAuthenticationPolicy(
-        secret=auth_secret
+        secret=auth_secret,
         hashalg='sha512'
     )
     authz_policy = ACLAuthorizationPolicy()

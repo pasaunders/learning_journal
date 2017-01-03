@@ -9,7 +9,7 @@ from ..models import MyModel
 
 import datetime
 from pyramid.httpexceptions import HTTPFound
-from learn_journal.security import check_credentials
+from learning_journal.security import check_credentials
 from pyramid.security import remember, forget
 
 

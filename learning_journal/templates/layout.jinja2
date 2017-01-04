@@ -9,14 +9,13 @@
 {% block body %}{% endblock %}
 
     <nav>
-        <button>
-        <a href="{{
-        request.route_url('home') }}">To The Home Page</a>
-        </button>
-         <button>
-        <a href="{{
-        request.route_url('new') }}">Add a new entry</a>
-        </button>
+        <button><a href="{{request.route_url('home') }}">To The Home Page</a></button>
+        {% if request.authenticated_userid %}
+        <button><a href="{{request.route_url('new') }}">Add a new entry</a></button>
+        <button><a href="{{request.route_url('logout') }}">Log Out</a></button>
+        {% else %}
+        <button><a href="{{request.route_url('login') }}">Log In</a></button>
+        {% endif %}
     </nav>
 </body>
 </html>

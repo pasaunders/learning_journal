@@ -13,7 +13,7 @@ from learning_journal.security import check_credentials
 from pyramid.security import remember, forget
 
 
-@view_config(route_name='home', renderer='../templates/list.jinja2', require_csrf=False)
+@view_config(route_name='home', renderer='../templates/list.jinja2', require_csrf=True)
 def home_page(request):
     """Render the home page."""
     try:

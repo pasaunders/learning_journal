@@ -33,7 +33,7 @@ def detail_page(request):
     return {"entries": entries}
 
 
-@view_config(route_name="edit", renderer="../templates/edit.jinja2", permission="cleared")
+@view_config(route_name="edit", renderer="../templates/edit.jinja2", permission="cleared", require_csrf=False)
 def edit_page(request):
     """View the edit page."""
     try:
@@ -48,7 +48,7 @@ def edit_page(request):
         return Response(db_err_msg, content_type='text/plain', status=500)
 
 
-@view_config(route_name="new", renderer="../templates/new.jinja2", permission="cleared")
+@view_config(route_name="new", renderer="../templates/new.jinja2", permission="cleared", require_csrf=False)
 def new_page(request):
     """View the edit page."""
     try:
@@ -81,6 +81,13 @@ def logout_view(request):
     """Log the user out by forgetting their credentials."""
     auth_head = forget(request)
     return HTTPFound(request.route_url('home'), headers=auth_head)
+
+
+# @view_config(route_name="api_list", renderer="string")
+# def api_list_view(request):
+#     expenses = request.dbsession.query(Expense).all()
+#     output = [item.to_json() for item in expenses]
+#     return output
 
 
 db_err_msg = """\

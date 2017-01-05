@@ -1,6 +1,5 @@
 from sqlalchemy import (
     Column,
-    Index,
     Integer,
     Unicode,
     Date,
@@ -16,5 +15,10 @@ class MyModel(Base):
     body = Column(Unicode)
     creation_date = Column(Date)
 
-
-Index('my_index', MyModel.title, unique=True, mysql_length=255)
+    def to_json(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "body": self.body,
+            "creation_date": self.creation_date
+        }

@@ -16,6 +16,11 @@ from pyramid.security import remember, forget
 @view_config(route_name='home', renderer='../templates/list.jinja2', require_csrf=True)
 def home_page(request):
     """Render the home page."""
+    if request.method == "POST":
+        data.title = request.POST["title"]
+        data.body = request.POST["body"]
+        request.dbsession.flush()
+        return HTTPFound(location=request.route_url('home'))
     try:
         query = request.dbsession.query(MyModel)
         entries = query.all()

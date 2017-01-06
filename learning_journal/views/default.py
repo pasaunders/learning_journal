@@ -16,16 +16,11 @@ from pyramid.security import remember, forget
 @view_config(route_name='home', renderer='../templates/list.jinja2', require_csrf=True)
 def home_page(request):
     """Render the home page."""
-    if request.method == "POST":
-        data.title = request.POST["title"]
-        data.body = request.POST["body"]
-        request.dbsession.flush()
-        return HTTPFound(location=request.route_url('home'))
     try:
         query = request.dbsession.query(MyModel)
         entries = query.all()
     except DBAPIError:
-        return Response(db_err_msg, content_type='text/plain', status=500)
+        return Response(db_err_msg, content_type='text/plain', status=501)
     return {'entries': entries}
 
 
@@ -50,23 +45,25 @@ def edit_page(request):
             return HTTPFound(location=request.route_url('home'))
         return {'entries': data}
     except DBAPIError:
-        return Response(db_err_msg, content_type='text/plain', status=500)
+        return Response(db_err_msg, content_type='text/plain', status=502)
 
 
 @view_config(route_name="new", renderer="../templates/new.jinja2", permission="cleared", require_csrf=False)
 def new_page(request):
     """View the edit page."""
+    print('in new_page')
     try:
         if request.method == "POST":
-                new_model = MyModel(title=request.POST['title'],
-                                    body=request.POST['body'],
-                                    creation_date=datetime.date.today()
-                                    )
-                request.dbsession.add(new_model)
-                return HTTPFound(location=request.route_url('home'))
+            # import pdb; pdb.set_trace()
+            new_model = MyModel(title=request.POST['title'],
+                                body=request.POST['body'],
+                                creation_date=datetime.date.today()
+                                )
+            request.dbsession.add(new_model)
+            return HTTPFound(location=request.route_url('home'))
         return {}
     except DBAPIError:
-        return Response(db_err_msg, content_type='text/plain', status=500)
+        return Response(db_err_msg, content_type='text/plain', status=503)
 
 
 @view_config(route_name="login", renderer="../templates/login.jinja2", require_csrf=False)

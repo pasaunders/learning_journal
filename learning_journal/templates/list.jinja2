@@ -11,23 +11,25 @@
     <section class="form">
       <form action="{{ request.route_url('new') }}" method="POST">
         <input type="hidden" name="csrf_token" class="security" value="{{ request.session.get_csrf_token() }}" />
-          <div class="form-group">
+          <div class="form-group" id="entry_form">
             <h2>Title</h2>
-            <input type="text" class="form-control" name="title" value="Entry Title">
+            <input type="text" class="form-control" id="title" value="Entry Title">
             <h2>What did you learn today...</h2>
-            <textarea name="body" class="form-control">Type here!</textarea>
+            <textarea id="body" class="form-control">Type here!</textarea>
             <button type="submit" class="form_add btn btn-primary">Submit</button>
           </div>
       </form>
     </section>
-    {% for item in entries %}
-    <section>
+    {% for item in entries|sort(reverse=True, attribute='creation_date') %}
+    <section id="data_entries">
       <article>
         <h2 class="entrytitle">
           <a href="{{ request.route_url('detail', id=item.id) }}">{{ item.title }}</a>
+          <a href="https://twitter.com/share/{{ request.route_url('detail', id=item.id) }}" class="twitter-share-button" data-show-count="false" data-text="{{ item.title }}"=>Tweet</a>{# <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script> #}
         </h2>
           <p class="date">{{ item.creation_date.strftime('%b %d, %Y') }}</p>
       </article>
     </section>
+    <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
     {% endfor %}
 {% endblock %}
